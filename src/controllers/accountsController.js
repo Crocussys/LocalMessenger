@@ -1,8 +1,7 @@
 const crypto = require("crypto");
 const db = require("../database/db");
 const pairingService = require("../services/pairingService");
-
-const config = require("../config");
+const { generateQrDataUrl } = require("../utils/qr");
 
 function getAllAccounts(req, res) {
     const accounts = db
@@ -43,7 +42,7 @@ function createAccount(req, res) {
     res.status(201).json(account);
 }
 
-function createPairLink(req, res) {
+async function createPairLink(req, res) {
     const accountId = Number(req.params.id);
 
     const account = db
@@ -69,11 +68,14 @@ function createPairLink(req, res) {
     const token = pairingService.createPairLink(account.id);
 
     const serverUrl = `${req.protocol}://${req.get("host")}`;
+    const pairUrl = `${serverUrl}/pair?token=${token}`;
+    const qrDataUrl = await generateQrDataUrl(pairUrl);
 
     res.json({
         account_id: account.id,
         display_name: account.display_name,
-        pair_url: `${serverUrl}/pair?token=${token}`
+        pair_url: pairUrl,
+        qr_data_url: qrDataUrl
     });
 }
 

@@ -61,11 +61,21 @@ async function createPairLink(event) {
     const fullUrl = result.pair_url;
 
     pairResult.innerHTML = `
-        <p><b>Ссылка для привязки:</b></p>
+        <p><b>QR-код для привязки:</b></p>
+
+        <img
+            src="${result.qr_data_url}"
+            alt="QR-код привязки"
+            width="256"
+            height="256"
+        >
+
+        <p><b>Ссылка:</b></p>
         <p>
-            <a href="${fullUrl}" target="_blank">${fullUrl}</a>
+            <a href="${result.pair_url}" target="_blank">${result.pair_url}</a>
         </p>
-        <p>Открой эту ссылку на телефоне.</p>
+
+        <p>Ссылка живёт 1 минуту.</p>
     `;
 }
 
