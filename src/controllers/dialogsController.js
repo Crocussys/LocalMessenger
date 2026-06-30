@@ -86,6 +86,48 @@ function openPrivateDialog(req, res) {
     });
 }
 
+function getMyDialogs(req, res) {
+    const dialogs = db
+        .prepare(`
+            SELECT
+                d.id,
+                d.type,
+                companion.id AS companion_id,
+                companion.display_name AS title,
+                last_message.text AS last_message_text,
+                last_message.created_at AS last_message_created_at
+            FROM dialogs d
+
+            JOIN dialog_members me
+                ON me.dialog_id = d.id
+                AND me.account_id = ?
+
+            LEFT JOIN dialog_members other_member
+                ON other_member.dialog_id = d.id
+                AND other_member.account_id != ?
+
+            LEFT JOIN accounts companion
+                ON companion.id = other_member.account_id
+
+            LEFT JOIN messages last_message
+                ON last_message.id = (
+                    SELECT m.id
+                    FROM messages m
+                    WHERE m.dialog_id = d.id
+                    ORDER BY m.id DESC
+                    LIMIT 1
+                )
+
+            ORDER BY
+                last_message.id DESC,
+                d.id DESC
+        `)
+        .all(req.account.id, req.account.id);
+
+    res.json(dialogs);
+}
+
 module.exports = {
-    openPrivateDialog
+    openPrivateDialog,
+    getMyDialogs
 };

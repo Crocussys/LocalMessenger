@@ -15,6 +15,7 @@ app.use("/api/accounts", accountsRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/dialogs", dialogsRouter);
 app.use("/api", messagesRouter);
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.get("/admin", (req, res) => {
     res.sendFile(path.join(__dirname, "public", "admin.html"));

@@ -1,0 +1,126 @@
+@media (max-width: 800px) {
+    body {
+        font-size: 16px;
+    }
+
+    .app-shell {
+        display: block;
+        height: 100dvh;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .sidebar {
+        height: 100dvh;
+        max-height: none;
+        padding: 16px;
+        border-right: none;
+        border-bottom: none;
+        overflow-y: auto;
+    }
+
+    .chat {
+        position: fixed;
+        inset: 0;
+        height: 100dvh;
+        background: #0f172a;
+        transform: translateX(100%);
+        transition: transform 0.2s ease;
+        z-index: 10;
+    }
+
+    .app-shell.chat-open .chat {
+        transform: translateX(0);
+    }
+
+    .back-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .chat-header {
+        padding: 12px;
+    }
+
+    .chat-header h2 {
+        margin: 0 0 2px;
+        font-size: 20px;
+    }
+
+    .chat-header p {
+        margin: 0;
+    }
+
+    .chat-body {
+        padding: 12px;
+    }
+
+    .chat-form {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        padding: 10px;
+        gap: 8px;
+    }
+
+    .chat-form input {
+        height: 44px;
+        font-size: 16px;
+    }
+
+    .chat-form .send-button {
+        width: 48px;
+        height: 44px;
+        padding: 0;
+        font-size: 0;
+    }
+
+    .chat-form .send-button::before {
+        content: "➤";
+        font-size: 20px;
+    }
+
+    .voice-button {
+        width: 48px;
+        height: 44px;
+    }
+
+    .button,
+    .account-button,
+    .dialog-button,
+    input {
+        min-height: 44px;
+        font-size: 16px;
+    }
+
+    .message {
+        max-width: 92%;
+        font-size: 16px;
+        line-height: 1.35;
+    }
+
+    .page {
+        padding: 14px;
+    }
+
+    .admin-grid {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .form-row {
+        flex-direction: column;
+    }
+
+    .card {
+        padding: 14px;
+        border-radius: 14px;
+    }
+
+    .qr {
+        width: 100%;
+        max-width: 260px;
+        height: auto;
+    }
+}

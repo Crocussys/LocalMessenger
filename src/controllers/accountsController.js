@@ -134,15 +134,33 @@ function pairDevice(req, res) {
 function getAvailableAccounts(req, res) {
     const accounts = db
         .prepare(`
-            SELECT id, display_name
-            FROM accounts
-            WHERE is_active = 1
-              AND id != ?
-            ORDER BY display_name
+            SELECT
+                a.id,
+                a.display_name,
+                d.id AS dialog_id
+            FROM accounts a
+            LEFT JOIN dialog_members dm_target
+                ON dm_target.account_id = a.id
+            LEFT JOIN dialog_members dm_current
+                ON dm_current.dialog_id = dm_target.dialog_id
+                AND dm_current.account_id = ?
+            LEFT JOIN dialogs d
+                ON d.id = dm_target.dialog_id
+                AND d.type = 'private'
+                AND dm_current.account_id IS NOT NULL
+            WHERE a.is_active = 1
+              AND a.id != ?
+            GROUP BY a.id
+            ORDER BY a.display_name
         `)
-        .all(req.account.id);
+        .all(req.account.id, req.account.id);
 
-    res.json(accounts);
+    res.json(accounts.map((account) => ({
+        id: account.id,
+        display_name: account.display_name,
+        has_dialog: Boolean(account.dialog_id),
+        dialog_id: account.dialog_id
+    })));
 }
 
 module.exports = {

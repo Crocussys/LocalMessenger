@@ -1,0 +1,152 @@
+.card {
+    background: #111827;
+    border: 1px solid #1f2937;
+    border-radius: 16px;
+    padding: 16px;
+}
+
+.button {
+    background: #38bdf8;
+    color: #082f49;
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-weight: 700;
+}
+
+.button.secondary {
+    background: #1f2937;
+    color: #e5e7eb;
+}
+
+.button.danger {
+    background: #ef4444;
+    color: white;
+}
+
+.input {
+    width: 100%;
+    border: 1px solid #334155;
+    background: #020617;
+    color: #e5e7eb;
+    border-radius: 12px;
+    padding: 12px 14px;
+    outline: none;
+}
+
+.input:focus {
+    border-color: #38bdf8;
+}
+
+.account-button,
+.dialog-button {
+    width: 100%;
+    text-align: left;
+    padding: 14px;
+    border-radius: 14px;
+    background: transparent;
+    color: #e5e7eb;
+}
+
+.account-button:hover,
+.dialog-button:hover {
+    background: #1f2937;
+}
+
+.message {
+    max-width: 70%;
+    margin-bottom: 12px;
+    padding: 12px 14px;
+    border-radius: 16px;
+    background: #1f2937;
+}
+
+.message.mine {
+    margin-left: auto;
+    background: #0ea5e9;
+    color: #082f49;
+}
+
+.message-author {
+    font-size: 12px;
+    margin-bottom: 4px;
+    opacity: 0.8;
+}
+
+.account-card {
+    margin-bottom: 12px;
+}
+
+.status {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 13px;
+    background: #1f2937;
+}
+
+.status.ok {
+    color: #86efac;
+}
+
+.status.bad {
+    color: #fca5a5;
+}
+
+.qr {
+    width: 220px;
+    height: 220px;
+    background: white;
+    border-radius: 12px;
+    padding: 8px;
+}
+
+.back-button {
+    display: none;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: #1f2937;
+    color: #e5e7eb;
+    font-size: 22px;
+    cursor: pointer;
+}
+
+.muted {
+    color: #94a3b8;
+}
+
+.tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin: 18px 0;
+}
+
+.tab {
+    min-height: 42px;
+    border-radius: 12px;
+    background: #020617;
+    color: #94a3b8;
+}
+
+.tab.active {
+    background: #38bdf8;
+    color: #082f49;
+    font-weight: 700;
+}
+
+.voice-button {
+    width: 48px;
+    padding: 0;
+    flex-shrink: 0;
+}
+
+.voice-button.danger {
+    background: #ef4444;
+    color: white;
+}
+
+.message audio {
+    width: 260px;
+    max-width: 100%;
+}

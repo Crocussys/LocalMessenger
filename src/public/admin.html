@@ -2,32 +2,15 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Админка — Local Messenger</title>
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
 
-<h1>Админка</h1>
+<div id="adminApp"></div>
 
-<h2>Создать аккаунт</h2>
-
-<form id="createAccountForm">
-    <input
-        id="displayNameInput"
-        type="text"
-        placeholder="Имя аккаунта"
-        autocomplete="off"
-        required
-    >
-
-    <button type="submit">Создать</button>
-</form>
-
-<h2>Аккаунты</h2>
-
-<div id="accountsList"></div>
-
-<script src="/qrcode.min.js"></script>
-<script src="/admin.js"></script>
+<script type="module" src="/js/admin.js"></script>
 
 </body>
 </html>
