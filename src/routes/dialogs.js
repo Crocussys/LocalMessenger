@@ -1,9 +1,9 @@
 const express = require("express");
-const authController = require("../controllers/authController");
+const dialogsController = require("../controllers/dialogsController");
 const { requireAuth } = require("../middlewares/authMiddleware");
 
 const router = express.Router();
 
-router.get("/me", requireAuth, authController.getMe);
+router.post("/private", requireAuth, dialogsController.openPrivateDialog);
 
 module.exports = router;

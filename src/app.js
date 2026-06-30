@@ -3,6 +3,8 @@ const path = require("path");
 
 const accountsRouter = require("./routes/accounts");
 const authRouter = require("./routes/auth");
+const dialogsRouter = require("./routes/dialogs");
+const messagesRouter = require("./routes/messages");
 
 const app = express();
 
@@ -11,6 +13,8 @@ app.use(express.static(path.join(__dirname, "public")));
 
 app.use("/api/accounts", accountsRouter);
 app.use("/api/auth", authRouter);
+app.use("/api/dialogs", dialogsRouter);
+app.use("/api", messagesRouter);
 
 app.get("/admin", (req, res) => {
     res.sendFile(path.join(__dirname, "public", "admin.html"));

@@ -131,9 +131,24 @@ function pairDevice(req, res) {
     });
 }
 
+function getAvailableAccounts(req, res) {
+    const accounts = db
+        .prepare(`
+            SELECT id, display_name
+            FROM accounts
+            WHERE is_active = 1
+              AND id != ?
+            ORDER BY display_name
+        `)
+        .all(req.account.id);
+
+    res.json(accounts);
+}
+
 module.exports = {
     getAllAccounts,
     createAccount,
     createPairLink,
-    pairDevice
+    pairDevice,
+    getAvailableAccounts
 };
