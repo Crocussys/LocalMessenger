@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Админка — Local Messenger</title>
+</head>
+<body>
+
+<h1>Админка</h1>
+
+<h2>Создать аккаунт</h2>
+
+<form id="createAccountForm">
+    <input
+        id="displayNameInput"
+        type="text"
+        placeholder="Имя аккаунта"
+        autocomplete="off"
+        required
+    >
+
+    <button type="submit">Создать</button>
+</form>
+
+<h2>Аккаунты</h2>
+
+<div id="accountsList"></div>
+
+<script src="/admin.js"></script>
+
+</body>
+</html>
