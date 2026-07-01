@@ -93,7 +93,10 @@ function renderLayout(account) {
                 <section id="messagesList" class="chat-body"></section>
 
                 <form id="messageForm" class="chat-form" style="display: none;">
-                    <button id="voiceButton" class="button secondary voice-button" type="button">🎙</button>
+                    ${account.is_certified
+                        ? `<button id="voiceButton" class="button secondary voice-button" type="button">🎙</button>`
+                        : ""
+                    }
 
                     <input id="messageInput" type="text" placeholder="Введите сообщение" autocomplete="off">
 
@@ -120,6 +123,11 @@ function renderLayout(account) {
     });
 
     document.getElementById("voiceButton").addEventListener("click", handleVoiceButtonClick);
+
+    const voiceButton = document.getElementById("voiceButton");
+    if (voiceButton) {
+        voiceButton.addEventListener("click", handleVoiceButtonClick);
+    }
 }
 
 function setActiveTab(tabName) {
@@ -269,6 +277,7 @@ function escapeHtml(text) {
 
 async function handleVoiceButtonClick() {
     if (!currentDialogId) {
+        alert("Сначала откройте диалог");
         return;
     }
 
@@ -281,44 +290,72 @@ async function handleVoiceButtonClick() {
 }
 
 async function startRecording() {
-    const stream = await navigator.mediaDevices.getUserMedia({
-        audio: true
-    });
-
-    recordedChunks = [];
-
-    mediaRecorder = new MediaRecorder(stream, {
-        mimeType: "audio/webm"
-    });
-
-    mediaRecorder.addEventListener("dataavailable", (event) => {
-        if (event.data.size > 0) {
-            recordedChunks.push(event.data);
+    try {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            alert("Браузер не поддерживает запись с микрофона или нужен HTTPS/localhost.");
+            return;
         }
-    });
 
-    mediaRecorder.addEventListener("stop", async () => {
-        const audioBlob = new Blob(recordedChunks, {
-            type: "audio/webm"
+        if (typeof MediaRecorder === "undefined") {
+            alert("MediaRecorder не поддерживается этим браузером.");
+            return;
+        }
+
+        const stream = await navigator.mediaDevices.getUserMedia({
+            audio: true
         });
 
-        stream.getTracks().forEach((track) => track.stop());
+        recordedChunks = [];
 
-        const { response, data } = await sendVoiceMessage(currentDialogId, audioBlob);
+        const mimeType = getSupportedAudioMimeType();
 
-        if (!response.ok) {
-            alert(data.error || "Ошибка отправки голосового сообщения");
-        }
-    });
+        mediaRecorder = new MediaRecorder(
+            stream,
+            mimeType ? { mimeType } : undefined
+        );
 
-    mediaRecorder.start();
+        mediaRecorder.addEventListener("dataavailable", (event) => {
+            if (event.data && event.data.size > 0) {
+                recordedChunks.push(event.data);
+            }
+        });
 
-    isRecording = true;
-    updateVoiceButton();
+        mediaRecorder.addEventListener("stop", async () => {
+            try {
+                const audioBlob = new Blob(recordedChunks, {
+                    type: mimeType || "audio/webm"
+                });
+
+                stream.getTracks().forEach((track) => track.stop());
+
+                if (audioBlob.size === 0) {
+                    alert("Голосовое получилось пустым");
+                    return;
+                }
+
+                const { response, data } = await sendVoiceMessage(currentDialogId, audioBlob);
+
+                if (!response.ok) {
+                    alert(data.error || "Ошибка отправки голосового сообщения");
+                }
+            } catch (error) {
+                console.error(error);
+                alert(`Ошибка отправки голосового: ${error.message}`);
+            }
+        });
+
+        mediaRecorder.start();
+
+        isRecording = true;
+        updateVoiceButton();
+    } catch (error) {
+        console.error(error);
+        alert(`Не удалось начать запись: ${error.message}`);
+    }
 }
 
 function stopRecording() {
-    if (!mediaRecorder) {
+    if (!mediaRecorder || mediaRecorder.state === "inactive") {
         return;
     }
 
@@ -337,6 +374,17 @@ function updateVoiceButton() {
 
     button.textContent = isRecording ? "■" : "🎙";
     button.classList.toggle("danger", isRecording);
+}
+
+function getSupportedAudioMimeType() {
+    const types = [
+        "audio/webm;codecs=opus",
+        "audio/webm",
+        "audio/mp4",
+        "audio/ogg;codecs=opus"
+    ];
+
+    return types.find((type) => MediaRecorder.isTypeSupported(type)) || "";
 }
 
 function renderMessageContent(message) {

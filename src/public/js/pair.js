@@ -31,8 +31,37 @@ async function pairDevice() {
     localStorage.setItem("account_id", result.account_id);
     localStorage.setItem("display_name", result.display_name);
 
-    statusElement.textContent = `Устройство привязано к аккаунту "${result.display_name}"`;
-    homeLink.style.display = "inline";
+    statusElement.innerHTML = `
+        <p>Устройство привязано к аккаунту <b>${result.display_name}</b>.</p>
+
+        <hr>
+
+        <h3>Голосовые сообщения</h3>
+
+        <p class="muted">
+            Для работы микрофона нужно установить локальный сертификат и открыть HTTPS-версию приложения.
+        </p>
+
+        <p>
+            <a class="button" href="${result.cert_url}">Скачать сертификат</a>
+        </p>
+
+        <p class="muted">
+            После установки сертификата откройте защищённую версию:
+        </p>
+
+        <p>
+            <a href="${result.certify_url}">${result.certify_url}</a>
+        </p>
+
+        <hr>
+
+        <p>
+            <a href="/">Продолжить без голосовых</a>
+        </p>
+    `;
+
+    homeLink.style.display = "none";
 }
 
 pairDevice();

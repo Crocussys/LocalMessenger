@@ -7,7 +7,7 @@ function getAccountByDeviceToken(deviceToken) {
 
     return db
         .prepare(`
-            SELECT id, display_name, is_active
+            SELECT id, display_name, is_active, is_certified
             FROM accounts
             WHERE device_token = ?
         `)

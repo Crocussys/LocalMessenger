@@ -18,7 +18,8 @@ db.exec(`
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         display_name TEXT NOT NULL,
         is_active INTEGER NOT NULL DEFAULT 1,
-        device_token TEXT UNIQUE
+        device_token TEXT UNIQUE,
+        is_certified INTEGER NOT NULL DEFAULT 0
     );
 
     CREATE TABLE IF NOT EXISTS dialogs (

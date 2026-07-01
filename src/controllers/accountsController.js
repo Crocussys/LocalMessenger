@@ -2,6 +2,8 @@ const crypto = require("crypto");
 const db = require("../database/db");
 const pairingService = require("../services/pairingService");
 const { generateQrDataUrl } = require("../utils/qr");
+const config = require("../config");
+const certificationTokenService = require("../services/certificationTokenService");
 
 function getAllAccounts(req, res) {
     const accounts = db
@@ -124,10 +126,14 @@ function pairDevice(req, res) {
         WHERE id = ?
     `).run(deviceToken, account.id);
 
+    const certificationToken = certificationTokenService.createCertificationToken(account.id);
+
     res.json({
         account_id: account.id,
         display_name: account.display_name,
-        device_token: deviceToken
+        device_token: deviceToken,
+        cert_url: `${config.getServerUrl()}/cert/rootCA.crt`,
+        certify_url: `${config.getHttpsServerUrl()}/certify?token=${certificationToken}`
     });
 }
 
