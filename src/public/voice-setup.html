@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Голосовые сообщения</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<div class="page">
+    <div class="card">
+        <h1>Голосовые сообщения</h1>
+
+        <p>
+            Для записи голосовых сообщений нужно установить локальный сертификат.
+        </p>
+
+        <p class="muted">
+            Сначала скачайте сертификат и установите его на устройстве.
+            После этого нажмите «Проверить HTTPS».
+        </p>
+
+        <div class="form-row">
+            <a id="downloadCertificateButton" class="button" href="#">
+                Скачать сертификат
+            </a>
+
+            <a id="checkHttpsButton" class="button secondary" href="#">
+                Проверить HTTPS
+            </a>
+        </div>
+
+        <hr>
+
+        <a href="/">Вернуться в мессенджер</a>
+    </div>
+</div>
+
+<script type="module" src="/js/voice-setup.js"></script>
+
+</body>
+</html>

@@ -1,5 +1,4 @@
 const statusElement = document.getElementById("status");
-const homeLink = document.getElementById("homeLink");
 
 const params = new URLSearchParams(window.location.search);
 const token = params.get("token");
@@ -34,8 +33,7 @@ async function certify() {
     localStorage.setItem("account_id", result.account_id);
     localStorage.setItem("display_name", result.display_name);
 
-    statusElement.textContent = "HTTPS подтверждён. Голосовые сообщения доступны.";
-    homeLink.style.display = "inline";
+    window.location.replace("/");
 }
 
 certify();

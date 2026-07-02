@@ -1,3 +1,7 @@
+[hidden] {
+    display: none !important;
+}
+
 .card {
     background: #111827;
     border: 1px solid #1f2937;
@@ -149,4 +153,112 @@
 .message audio {
     width: 260px;
     max-width: 100%;
+}
+
+.account-actions {
+    margin-top: 12px;
+    flex-wrap: wrap;
+}
+
+.account-actions .button {
+    margin-bottom: 8px;
+}
+
+.recording-status {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    min-height: 48px;
+    padding: 0 12px;
+    border-radius: 14px;
+    background: #1f2937;
+    width: 100%;
+}
+
+.recording-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.recording-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 999px;
+    background: #ef4444;
+}
+
+#recordingTimer {
+    font-weight: 700;
+    color: #fca5a5;
+}
+
+.cancel-recording-button {
+    background: transparent;
+    color: #fca5a5;
+    padding: 0;
+}
+
+.recording-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.recording-action {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: #020617;
+    color: #e5e7eb;
+}
+
+.recording-action.cancel {
+    color: #fca5a5;
+}
+
+.recording-action.send {
+    color: #86efac;
+}
+
+
+.voice-button:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+
+.dialog-button.active,
+.account-button.active {
+    background: #0f2f46;
+    border: 1px solid #38bdf8;
+}
+
+.dialog-button,
+.account-button {
+    border: 1px solid transparent;
+}
+
+.dialog-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.unread-badge {
+    min-width: 24px;
+    height: 24px;
+    padding: 0 8px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 999px;
+    background: #38bdf8;
+    color: #082f49;
+
+    font-size: 13px;
+    font-weight: 700;
 }

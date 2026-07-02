@@ -2,6 +2,7 @@
     height: 100vh;
     display: grid;
     grid-template-columns: 320px 1fr;
+    overflow: hidden;
 }
 
 .sidebar {
@@ -47,17 +48,10 @@
 }
 
 .chat-form {
-    display: flex;
-    gap: 10px;
     padding: 16px;
     border-top: 1px solid #1f2937;
     background: #111827;
     flex-shrink: 0;
-}
-
-.chat-form input {
-    flex: 1;
-    min-width: 0;
 }
 
 .chat-form .button {
@@ -83,4 +77,20 @@
 .form-row {
     display: flex;
     gap: 10px;
+}
+
+.input-row,
+.recording-status {
+    width: 100%;
+}
+
+.input-row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 10px;
+}
+
+.input-row input {
+    width: 100%;
+    min-width: 0;
 }

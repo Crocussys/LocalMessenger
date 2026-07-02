@@ -9,6 +9,11 @@ router.get("/available", requireAuth, accountsController.getAvailableAccounts);
 
 router.post("/", accountsController.createAccount);
 router.post("/pair", accountsController.pairDevice);
+
+router.patch("/:id", accountsController.updateAccount);
 router.post("/:id/pair-link", accountsController.createPairLink);
+router.post("/:id/unpair", accountsController.unpairAccount);
+router.post("/:id/reset-certification", accountsController.resetCertification);
+router.delete("/:id", accountsController.deleteAccount);
 
 module.exports = router;

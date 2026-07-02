@@ -5,7 +5,8 @@ import {
     openPrivateDialog,
     getMessages,
     sendTextMessage,
-    sendVoiceMessage
+    sendVoiceMessage,
+    markDialogAsRead
 } from "./api.js";
 
 import {
@@ -22,10 +23,15 @@ import {
 
 const app = document.getElementById("app");
 
+let currentAccount = null;
 let currentDialogId = null;
 let mediaRecorder = null;
 let recordedChunks = [];
 let isRecording = false;
+let isCancellingRecording = false;
+let recordingTimerId = null;
+let recordingStartedAt = null;
+let activeSidebarTab = "contacts";
 
 async function init() {
     if (!getDeviceToken()) {
@@ -41,11 +47,22 @@ async function init() {
         return;
     }
 
+    currentAccount = data;
     saveAccount(data);
 
-    connectSocket((message) => {
+    connectSocket(async (message) => {
         if (message.dialog_id === currentDialogId) {
             appendMessage(message);
+            await markDialogAsRead(currentDialogId);
+        }
+
+        if (activeSidebarTab === "dialogs") {
+            await renderDialogs();
+            return;
+        }
+
+        if (activeSidebarTab === "contacts") {
+            await renderContacts();
         }
     });
 
@@ -93,14 +110,25 @@ function renderLayout(account) {
                 <section id="messagesList" class="chat-body"></section>
 
                 <form id="messageForm" class="chat-form" style="display: none;">
-                    ${account.is_certified
-                        ? `<button id="voiceButton" class="button secondary voice-button" type="button">🎙</button>`
-                        : ""
-                    }
+                    <div id="normalInputRow" class="input-row">
+                        <button id="voiceButton" class="button secondary voice-button" type="button">🎙</button>
 
-                    <input id="messageInput" type="text" placeholder="Введите сообщение" autocomplete="off">
+                        <input id="messageInput" type="text" placeholder="Введите сообщение" autocomplete="off">
 
-                    <button class="button send-button" type="submit">Отправить</button>
+                        <button class="button send-button" type="submit">Отправить</button>
+                    </div>
+
+                    <div id="recordingStatus" class="recording-status" hidden>
+                        <div class="recording-info">
+                            <span class="recording-dot"></span>
+                            <span id="recordingTimer">00:00</span>
+                        </div>
+
+                        <div class="recording-actions">
+                            <button id="cancelRecordingButton" class="recording-action cancel" type="button">✖</button>
+                            <button id="sendRecordingButton" class="recording-action send" type="button">✔</button>
+                        </div>
+                    </div>
                 </form>
             </main>
         </div>
@@ -128,6 +156,9 @@ function renderLayout(account) {
     if (voiceButton) {
         voiceButton.addEventListener("click", handleVoiceButtonClick);
     }
+
+    document.getElementById("cancelRecordingButton").addEventListener("click", cancelRecording);
+    document.getElementById("sendRecordingButton").addEventListener("click", stopRecording);
 }
 
 function setActiveTab(tabName) {
@@ -164,6 +195,8 @@ async function renderContacts() {
 }
 
 async function renderDialogs() {
+    activeSidebarTab = "dialogs";
+
     const dialogs = await getDialogs();
     const list = document.getElementById("sidebarList");
 
@@ -178,10 +211,24 @@ async function renderDialogs() {
         const button = document.createElement("button");
         button.className = "dialog-button";
 
+        if (dialog.id === currentDialogId) {
+            button.classList.add("active");
+        }
+
         button.innerHTML = `
-            <div><b>${dialog.title || "Без названия"}</b></div>
-            <div class="muted">
-                ${dialog.last_message_text || "Сообщений пока нет"}
+            <div class="dialog-row">
+                <div>
+                    <div><b>${dialog.title || "Без названия"}</b></div>
+                    <div class="muted">
+                        ${formatDialogPreview(dialog)}
+                    </div>
+                </div>
+
+                ${
+                    dialog.unread_count > 0
+                        ? `<span class="unread-badge">${dialog.unread_count}</span>`
+                        : ""
+                }
             </div>
         `;
 
@@ -195,6 +242,11 @@ async function openDialog(accountId) {
     const result = await openPrivateDialog(accountId);
 
     currentDialogId = result.dialog_id;
+
+    if (activeSidebarTab === "dialogs") {
+        await renderDialogs();
+    }
+
     document.querySelector(".app-shell").classList.add("chat-open");
 
     document.getElementById("chatTitle").textContent = result.companion.display_name;
@@ -204,6 +256,11 @@ async function openDialog(accountId) {
     joinDialog(currentDialogId);
 
     await renderMessages();
+    await markDialogAsRead(currentDialogId);
+
+    if (activeSidebarTab === "dialogs") {
+        await renderDialogs();
+    }
 }
 
 async function renderMessages() {
@@ -267,6 +324,10 @@ async function handleSendMessage(event) {
     }
 
     input.value = "";
+
+    if (activeSidebarTab === "dialogs") {
+        await renderDialogs();
+    }
 }
 
 function escapeHtml(text) {
@@ -281,8 +342,12 @@ async function handleVoiceButtonClick() {
         return;
     }
 
+    if (!currentAccount?.is_certified) {
+        window.location.href = "/voice-setup";
+        return;
+    }
+
     if (isRecording) {
-        stopRecording();
         return;
     }
 
@@ -292,20 +357,14 @@ async function handleVoiceButtonClick() {
 async function startRecording() {
     try {
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            alert("Браузер не поддерживает запись с микрофона или нужен HTTPS/localhost.");
+            alert("Браузер не поддерживает запись с микрофона или нужен HTTPS.");
             return;
         }
 
-        if (typeof MediaRecorder === "undefined") {
-            alert("MediaRecorder не поддерживается этим браузером.");
-            return;
-        }
-
-        const stream = await navigator.mediaDevices.getUserMedia({
-            audio: true
-        });
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
         recordedChunks = [];
+        isCancellingRecording = false;
 
         const mimeType = getSupportedAudioMimeType();
 
@@ -321,33 +380,38 @@ async function startRecording() {
         });
 
         mediaRecorder.addEventListener("stop", async () => {
-            try {
-                const audioBlob = new Blob(recordedChunks, {
-                    type: mimeType || "audio/webm"
-                });
+            clearRecordingTimer();
+            stream.getTracks().forEach((track) => track.stop());
 
-                stream.getTracks().forEach((track) => track.stop());
+            if (isCancellingRecording) {
+                recordedChunks = [];
+                isCancellingRecording = false;
+                return;
+            }
 
-                if (audioBlob.size === 0) {
-                    alert("Голосовое получилось пустым");
-                    return;
-                }
+            const audioBlob = new Blob(recordedChunks, {
+                type: mimeType || "audio/webm"
+            });
 
-                const { response, data } = await sendVoiceMessage(currentDialogId, audioBlob);
+            if (audioBlob.size === 0) {
+                alert("Голосовое получилось пустым");
+                return;
+            }
 
-                if (!response.ok) {
-                    alert(data.error || "Ошибка отправки голосового сообщения");
-                }
-            } catch (error) {
-                console.error(error);
-                alert(`Ошибка отправки голосового: ${error.message}`);
+            const { response, data } = await sendVoiceMessage(currentDialogId, audioBlob);
+
+            if (!response.ok) {
+                alert(data.error || "Ошибка отправки голосового сообщения");
             }
         });
 
         mediaRecorder.start();
 
         isRecording = true;
-        updateVoiceButton();
+        recordingStartedAt = Date.now();
+
+        startRecordingTimer();
+        updateRecordingUi();
     } catch (error) {
         console.error(error);
         alert(`Не удалось начать запись: ${error.message}`);
@@ -359,21 +423,68 @@ function stopRecording() {
         return;
     }
 
-    mediaRecorder.stop();
-
     isRecording = false;
-    updateVoiceButton();
+    updateRecordingUi();
+
+    mediaRecorder.stop();
 }
 
-function updateVoiceButton() {
-    const button = document.getElementById("voiceButton");
-
-    if (!button) {
+function cancelRecording() {
+    if (!mediaRecorder || mediaRecorder.state === "inactive") {
         return;
     }
 
-    button.textContent = isRecording ? "■" : "🎙";
-    button.classList.toggle("danger", isRecording);
+    isCancellingRecording = true;
+    isRecording = false;
+    updateRecordingUi();
+
+    mediaRecorder.stop();
+}
+
+function startRecordingTimer() {
+    updateRecordingTimer();
+    recordingTimerId = setInterval(updateRecordingTimer, 500);
+}
+
+function clearRecordingTimer() {
+    clearInterval(recordingTimerId);
+
+    recordingTimerId = null;
+    recordingStartedAt = null;
+
+    const timer = document.getElementById("recordingTimer");
+    if (timer) {
+        timer.textContent = "00:00";
+    }
+}
+
+function updateRecordingTimer() {
+    const timer = document.getElementById("recordingTimer");
+
+    if (!timer || !recordingStartedAt) {
+        return;
+    }
+
+    const elapsedMs = Date.now() - recordingStartedAt;
+    const seconds = Math.floor(elapsedMs / 1000);
+
+    const minutesPart = String(Math.floor(seconds / 60)).padStart(2, "0");
+    const secondsPart = String(seconds % 60).padStart(2, "0");
+
+    timer.textContent = `${minutesPart}:${secondsPart}`;
+}
+
+function updateRecordingUi() {
+    const normalInputRow = document.getElementById("normalInputRow");
+    const recordingStatus = document.getElementById("recordingStatus");
+
+    if (normalInputRow) {
+        normalInputRow.hidden = isRecording;
+    }
+
+    if (recordingStatus) {
+        recordingStatus.hidden = !isRecording;
+    }
 }
 
 function getSupportedAudioMimeType() {
@@ -395,6 +506,34 @@ function renderMessageContent(message) {
     }
 
     return escapeHtml(message.text || "");
+}
+
+function showCertificationDialog() {
+    const ok = confirm(
+`Для записи голосовых сообщений необходимо установить локальный сертификат.
+
+Сейчас открыть инструкцию?`
+    );
+
+    if (ok) {
+        window.location.href = "/pair";
+    }
+}
+
+function formatDialogPreview(dialog) {
+    if (!dialog.last_message_type) {
+        return "Сообщений пока нет";
+    }
+
+    if (dialog.last_message_type === "voice") {
+        return "🎙 Голосовое сообщение";
+    }
+
+    if (dialog.last_message_type === "file") {
+        return "📎 Файл";
+    }
+
+    return dialog.last_message_text || "";
 }
 
 init();

@@ -94,8 +94,25 @@ function getMyDialogs(req, res) {
                 d.type,
                 companion.id AS companion_id,
                 companion.display_name AS title,
+
+                last_message.id AS last_message_id,
+                last_message.type AS last_message_type,
                 last_message.text AS last_message_text,
-                last_message.created_at AS last_message_created_at
+                last_message.created_at AS last_message_created_at,
+
+                me.last_read_message_id,
+
+                (
+                    SELECT COUNT(*)
+                    FROM messages unread
+                    WHERE unread.dialog_id = d.id
+                      AND unread.sender_account_id != ?
+                      AND (
+                          me.last_read_message_id IS NULL
+                          OR unread.id > me.last_read_message_id
+                      )
+                ) AS unread_count
+
             FROM dialogs d
 
             JOIN dialog_members me
@@ -122,7 +139,7 @@ function getMyDialogs(req, res) {
                 last_message.id DESC,
                 d.id DESC
         `)
-        .all(req.account.id, req.account.id);
+        .all(req.account.id, req.account.id, req.account.id);
 
     res.json(dialogs);
 }

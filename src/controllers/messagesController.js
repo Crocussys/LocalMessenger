@@ -165,8 +165,45 @@ function createVoiceMessage(req, res) {
     res.status(201).json(message);
 }
 
+function markDialogAsRead(req, res) {
+    const dialogId = Number(req.params.id);
+
+    if (!dialogId) {
+        return res.status(400).json({
+            error: "Некорректный ID диалога"
+        });
+    }
+
+    if (!isDialogMember(dialogId, req.account.id)) {
+        return res.status(403).json({
+            error: "Нет доступа к этому диалогу"
+        });
+    }
+
+    const lastMessage = db.prepare(`
+        SELECT id
+        FROM messages
+        WHERE dialog_id = ?
+        ORDER BY id DESC
+        LIMIT 1
+    `).get(dialogId);
+
+    db.prepare(`
+        UPDATE dialog_members
+        SET last_read_message_id = ?
+        WHERE dialog_id = ?
+          AND account_id = ?
+    `).run(lastMessage?.id || null, dialogId, req.account.id);
+
+    res.json({
+        ok: true,
+        last_read_message_id: lastMessage?.id || null
+    });
+}
+
 module.exports = {
     getDialogMessages,
     createDialogMessage,
-    createVoiceMessage
+    createVoiceMessage,
+    markDialogAsRead
 };

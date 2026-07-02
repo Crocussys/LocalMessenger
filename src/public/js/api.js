@@ -119,3 +119,75 @@ export async function sendVoiceMessage(dialogId, audioBlob) {
         data: await response.json()
     };
 }
+
+export async function updateAccount(accountId, data) {
+    const response = await fetch(`/api/accounts/${accountId}`, {
+        method: "PATCH",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data)
+    });
+
+    return {
+        response,
+        data: await response.json()
+    };
+}
+
+export async function unpairAccount(accountId) {
+    const response = await fetch(`/api/accounts/${accountId}/unpair`, {
+        method: "POST"
+    });
+
+    return {
+        response,
+        data: await response.json()
+    };
+}
+
+export async function resetAccountCertification(accountId) {
+    const response = await fetch(`/api/accounts/${accountId}/reset-certification`, {
+        method: "POST"
+    });
+
+    return {
+        response,
+        data: await response.json()
+    };
+}
+
+export async function deleteAccount(accountId) {
+    const response = await fetch(`/api/accounts/${accountId}`, {
+        method: "DELETE"
+    });
+
+    return {
+        response,
+        data: await response.json()
+    };
+}
+
+export async function createCertificationLink() {
+    const response = await fetch("/api/certification/link", {
+        method: "POST",
+        headers: authHeaders()
+    });
+
+    return {
+        response,
+        data: await response.json()
+    };
+}
+
+export async function markDialogAsRead(dialogId) {
+    const response = await fetch(`/api/dialogs/${dialogId}/read`, {
+        method: "POST",
+        headers: authHeaders()
+    });
+
+    return {
+        response,
+        data: await response.json()
+    };
+}

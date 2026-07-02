@@ -8,7 +8,7 @@ const certificationTokenService = require("../services/certificationTokenService
 function getAllAccounts(req, res) {
     const accounts = db
         .prepare(`
-            SELECT id, display_name, is_active, device_token
+            SELECT id, display_name, is_active, device_token, is_certified
             FROM accounts
             ORDER BY id DESC
         `)
@@ -169,10 +169,107 @@ function getAvailableAccounts(req, res) {
     })));
 }
 
+function updateAccount(req, res) {
+    const accountId = Number(req.params.id);
+    const displayName = req.body.display_name?.trim();
+    const isActive = req.body.is_active;
+
+    const account = db.prepare(`
+        SELECT id
+        FROM accounts
+        WHERE id = ?
+    `).get(accountId);
+
+    if (!account) {
+        return res.status(404).json({
+            error: "Аккаунт не найден"
+        });
+    }
+
+    if (!displayName) {
+        return res.status(400).json({
+            error: "Имя аккаунта не указано"
+        });
+    }
+
+    db.prepare(`
+        UPDATE accounts
+        SET display_name = ?,
+            is_active = ?
+        WHERE id = ?
+    `).run(displayName, isActive ? 1 : 0, accountId);
+
+    const updatedAccount = db.prepare(`
+        SELECT id, display_name, is_active, device_token, is_certified
+        FROM accounts
+        WHERE id = ?
+    `).get(accountId);
+
+    res.json(updatedAccount);
+}
+
+function unpairAccount(req, res) {
+    const accountId = Number(req.params.id);
+
+    const result = db.prepare(`
+        UPDATE accounts
+        SET device_token = NULL,
+            is_certified = 0
+        WHERE id = ?
+    `).run(accountId);
+
+    if (result.changes === 0) {
+        return res.status(404).json({
+            error: "Аккаунт не найден"
+        });
+    }
+
+    res.json({ ok: true });
+}
+
+function resetCertification(req, res) {
+    const accountId = Number(req.params.id);
+
+    const result = db.prepare(`
+        UPDATE accounts
+        SET is_certified = 0
+        WHERE id = ?
+    `).run(accountId);
+
+    if (result.changes === 0) {
+        return res.status(404).json({
+            error: "Аккаунт не найден"
+        });
+    }
+
+    res.json({ ok: true });
+}
+
+function deleteAccount(req, res) {
+    const accountId = Number(req.params.id);
+
+    const result = db.prepare(`
+        DELETE FROM accounts
+        WHERE id = ?
+    `).run(accountId);
+
+    if (result.changes === 0) {
+        return res.status(404).json({
+            error: "Аккаунт не найден"
+        });
+    }
+
+    res.json({ ok: true });
+}
+
 module.exports = {
     getAllAccounts,
     createAccount,
     createPairLink,
     pairDevice,
-    getAvailableAccounts
+    getAvailableAccounts,
+    updateAccount,
+    unpairAccount,
+    resetCertification,
+    deleteAccount
 };

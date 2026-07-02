@@ -30,6 +30,7 @@ db.exec(`
     CREATE TABLE IF NOT EXISTS dialog_members (
         dialog_id INTEGER NOT NULL,
         account_id INTEGER NOT NULL,
+        last_read_message_id INTEGER,
 
         PRIMARY KEY (dialog_id, account_id),
 

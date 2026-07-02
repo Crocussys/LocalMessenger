@@ -1,4 +1,5 @@
 const db = require("../database/db");
+const config = require("../config");
 const certificationTokenService = require("../services/certificationTokenService");
 
 function confirmCertification(req, res) {
@@ -50,6 +51,16 @@ function confirmCertification(req, res) {
     });
 }
 
+function createCertificationLink(req, res) {
+    const token = certificationTokenService.createCertificationToken(req.account.id);
+
+    res.json({
+        certify_url: `${config.getHttpsServerUrl()}/certify?token=${token}`,
+        cert_url: `${config.getServerUrl()}/cert/rootCA.crt`
+    });
+}
+
 module.exports = {
-    confirmCertification
+    confirmCertification,
+    createCertificationLink
 };
